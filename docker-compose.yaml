@@ -11,13 +11,15 @@ services:
       - backend
 
   prometheus:
-    image: prom/prometheus:v2.29.1
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    build:
+      context: infrastructure/prometheus
+      dockerfile: Dockerfile
     ports:
       - '9090:9090'
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
     depends_on:
-      - nestjs-app
+      - api
     networks:
       - backend
 
@@ -29,7 +31,7 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
     ports:
-      - '3001:3000'
+      - '3011:3000'
     depends_on:
       - prometheus
       - loki
@@ -46,9 +48,11 @@ services:
       - backend
 
   promtail:
-    image: grafana/promtail:2.4.1
+    build:
+      context: infrastructure/promtail
+      dockerfile: Dockerfile
     volumes:
-      - ./promtail/config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - loki
