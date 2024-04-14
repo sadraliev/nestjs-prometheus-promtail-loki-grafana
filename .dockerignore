@@ -1,0 +1,17 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore build output directory
+dist/
+
+# Ignore any files or directories starting with a dot
+.*
+
+# Ignore any files with the .log extension
+*.log
+
+# Ignore any files or directories named "tmp"
+tmp/
+
+# Ignore any files or directories named "test"
+test/

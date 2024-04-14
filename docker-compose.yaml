@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: infrastructure/api
+      dockerfile: Dockerfile
+    ports:
+      - '3030:3000'
+    networks:
+      - backend
+
+  prometheus:
+    image: prom/prometheus:v2.29.1
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - '9090:9090'
+    depends_on:
+      - nestjs-app
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana:8.3.3
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - '3001:3000'
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - backend
+
+  loki:
+    image: grafana/loki:2.4.1
+    volumes:
+      - loki_data:/loki
+    ports:
+      - '3100:3100'
+    networks:
+      - backend
+
+  promtail:
+    image: grafana/promtail:2.4.1
+    volumes:
+      - ./promtail/config.yml:/etc/promtail/config.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - loki
+    networks:
+      - backend
+
+volumes:
+  grafana_data:
+  loki_data:
+
+networks:
+  backend:
