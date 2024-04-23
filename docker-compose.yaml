@@ -3,12 +3,16 @@ version: '3.8'
 services:
   api:
     build:
-      context: infrastructure/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: infrastructure/api/Dockerfile
     ports:
-      - '3030:3000'
+      - '3333:3000'
     networks:
       - backend
+    labels:
+      - 'promtail=true'
+    depends_on:
+      - promtail
 
   prometheus:
     build:
@@ -39,11 +43,16 @@ services:
       - backend
 
   loki:
-    image: grafana/loki:2.4.1
+    build:
+      context: infrastructure/loki
+      dockerfile: Dockerfile
+    command: '-config.file=/etc/loki/config.yml'
     volumes:
       - loki_data:/loki
     ports:
       - '3100:3100'
+    depends_on:
+      - promtail
     networks:
       - backend
 
@@ -54,8 +63,7 @@ services:
     volumes:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - loki
+    command: '-config.file=/etc/promtail/docker-config.yml'
     networks:
       - backend
 
